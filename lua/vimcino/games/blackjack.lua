@@ -32,7 +32,7 @@ local game_state = {
 -- Constants
 local WINDOW_CONFIG = {
   width = 70,
-  height = 20,
+  height = 15,
   style = "minimal",
   border = "rounded",
 }
@@ -89,11 +89,10 @@ local function display_game_state(buf)
     string.format("Dealer Cards: %s", dealer_display),
     string.format("Dealer Value: %d", dealer_display_value),
     "",
-    string.format("Winner: %s", game_state.winner or ""),
   }
 
   if game_state.winner then
-    table.insert(lines, string.format("Game Over! %s wins!", game_state.winner))
+    table.insert(lines, string.format("Game Over! %s win(s)!", game_state.winner))
     table.insert(lines, "Press `p` to play again, `q` to quit")
   else
     table.insert(lines, "Press `=` to increase bet, '-' to decrease bet")
@@ -219,12 +218,14 @@ local function dealers_turn()
   draw_step()
 end
 
+--- Player is done taking cards, dealers turn
 function M.stand()
   game_state.can_hit = false
   display_game_state(game_state.buf)
   dealers_turn()
 end
 
+--- Player takes another card
 function M.hit()
   if not game_state.can_hit or game_state.player_value > 21 then
     return
@@ -242,6 +243,7 @@ function M.hit()
   end
 end
 
+--- Restart the game to play again
 function M.restart()
   reset_game_state()
   if game_state.buf then

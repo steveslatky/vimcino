@@ -2,7 +2,6 @@
 local M = { name = "Deathroll" }
 
 local bet_handler = require("vimcino.bet_handler")
-local config = require("vimcino.config")
 local stats = require("vimcino.stats")
 
 ---@class GameState
@@ -30,11 +29,6 @@ local game_state = {
 ---@return number
 local function roll_number(n)
   return math.random(1, n)
-end
-
-local function setup_highlights()
-  vim.api.nvim_set_hl(0, "VimcinoWin", { fg = "#98c379", bg = "#1e1e1e" })
-  vim.api.nvim_set_hl(0, "VimcinoLose", { fg = "#e06c75", bg = "#1e1e1e" })
 end
 
 --- Updates the game state and check for a winner
@@ -187,7 +181,7 @@ end
 --- Setup the game
 function M.setup()
   reset_game_state()
-  setup_highlights()
+  require("vimcino.games.init").setup_hl()
 
   local buf = vim.api.nvim_create_buf(false, true)
   game_state.buf = buf

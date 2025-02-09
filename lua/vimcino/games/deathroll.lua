@@ -1,6 +1,8 @@
+---@class vimcinco.games.deathroll
 local M = { name = "Deathroll" }
 
 local bet_handler = require("vimcino.bet_handler")
+local config = require("vimcino.config")
 local stats = require("vimcino.stats")
 
 ---@class GameState
@@ -28,6 +30,11 @@ local game_state = {
 ---@return number
 local function roll_number(n)
   return math.random(1, n)
+end
+
+local function setup_highlights()
+  vim.api.nvim_set_hl(0, "VimcinoWin", { fg = "#98c379", bg = "#1e1e1e" })
+  vim.api.nvim_set_hl(0, "VimcinoLose", { fg = "#e06c75", bg = "#1e1e1e" })
 end
 
 --- Updates the game state and check for a winner
@@ -60,15 +67,52 @@ local function display_game_state(buf)
     "",
   }
 
+  -- Store highlight positions
+  local instruction_lines = {}
+  local result_line = nil
+
   if game_state.winner then
-    table.insert(lines, string.format("Game Over! %s win!", game_state.winner))
+    if game_state.winner == "You" then
+      table.insert(lines, "💰 YOU WON! 💰")
+      result_line = #lines - 1
+    else
+      table.insert(lines, string.format("Game Over! %s wins!", game_state.winner))
+      result_line = #lines - 1
+    end
     table.insert(lines, "Press `p` to play again, `q` to quit")
+    instruction_lines = { #lines - 1 }
   else
     table.insert(lines, "Press `=` to increase bet, '-' to decrease bet")
     table.insert(lines, "Press `r` to roll, `q` to quit")
+    instruction_lines = { #lines - 2, #lines - 1 }
   end
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+  -- Highlight title
+  vim.api.nvim_buf_add_highlight(buf, -1, "Title", 0, 0, -1)
+
+  -- Highlight game state lines
+  for i, line in ipairs(lines) do
+    local line_index = i - 1 -- Convert to 0-based index
+    if line:find(": ") then
+      local colon_pos = line:find(": ")
+      local label_end_col = colon_pos + 1
+
+      vim.api.nvim_buf_add_highlight(buf, -1, "Identifier", line_index, 0, label_end_col)
+      vim.api.nvim_buf_add_highlight(buf, -1, "Number", line_index, label_end_col, -1)
+    end
+  end
+
+  if result_line then
+    local hl_group = game_state.winner == "You" and "VimcinoWin" or "VimcinoLose"
+    vim.api.nvim_buf_add_highlight(buf, -1, hl_group, result_line, 0, -1)
+  end
+
+  -- Highlight instruction lines
+  for _, line_index in ipairs(instruction_lines) do
+    vim.api.nvim_buf_add_highlight(buf, -1, "Comment", line_index, 0, -1)
+  end
 end
 
 --- Function to handle the player's roll
@@ -113,7 +157,7 @@ end
 --- Restarts the game to the initial state
 function M.restart()
   reset_game_state()
-  bet_handler.create(game_state.buf, 25)
+  -- bet_handler.create(game_state.buf, 25)
   display_game_state(vim.api.nvim_win_get_buf(0))
 end
 
@@ -135,32 +179,28 @@ local function setup_keybindings(buf)
     ":lua require('vimcino.games.deathroll').restart()<CR>",
     { noremap = true, silent = true }
   )
-  vim.api.nvim_buf_set_keymap(buf, "n", "q", ":q<CR>", { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(game_state.buf, "n", "q", ":q<CR>", { noremap = true, silent = true })
 
-  bet_handler.setup_keybindings(buf)
+  bet_handler.setup_keybindings(game_state.buf)
 end
 
---- Setup game window
+--- Setup the game
 function M.setup()
-  -- Reset the game state
   reset_game_state()
+  setup_highlights()
 
-  -- Create a new buffer
   local buf = vim.api.nvim_create_buf(false, true)
-
   game_state.buf = buf
   bet_handler.create(buf, 25, function(bufnr)
     display_game_state(bufnr)
   end)
 
-  -- Define the window dimensions and position
   local width = 50
   local height = 10
   local ui = vim.api.nvim_list_uis()[1]
   local row = math.floor((ui.height - height) / 2)
   local col = math.floor((ui.width - width) / 2)
 
-  -- Create the floating window
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,

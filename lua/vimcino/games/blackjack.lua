@@ -1,9 +1,16 @@
+---@class vimcino.games.blackjack
+---@field name string
+---@field opts blackjack.Config
 local M = { name = "Blackjack" }
 
 local bet_handler = require("vimcino.bet_handler")
 local config = require("vimcino.config")
 local deck_handler = require("vimcino.cards")
+local h = require("vimcino.games.init")
 local stats = require("vimcino.stats")
+
+---@diagnostic disable-next-line: assign-type-mismatch
+M.opts = config.get_config(string.lower(M.name))
 
 ---@class GameState.Blackjack
 ---@field deck table
@@ -27,6 +34,17 @@ local game_state = {
   buf = nil,
   default_bet = 25,
   can_hit = true,
+}
+
+local HIGHLIGHT_GROUPS = {
+  header = "Title",
+  label = "Identifier",
+  value = "Constant",
+  card = "String",
+  win = "DiffAdd",
+  lose = "Error",
+  push = "WarningMsg",
+  hidden = "Comment",
 }
 
 -- Constants
@@ -71,6 +89,7 @@ local function display_game_state(buf)
   local dealer_display_value = 0
 
   if game_state.can_hit then
+    ---@diagnostic disable-next-line: missing-fields
     dealer_display = "[HIDDEN], " .. deck_handler.display_cards_inline({ game_state.dealer_cards[2] })
     dealer_display_value = game_state.dealer_cards[2].value
   else
@@ -78,10 +97,13 @@ local function display_game_state(buf)
     dealer_display_value = game_state.dealer_value
   end
 
+  local instruction_lines = {}
+  local result_line = nil
+
   local lines = {
     "=== Blackjack ===",
     string.format("Bet: %d", current_bet),
-    string.format("Deck(s): %d", config.get_config().blackjack.number_of_decks),
+    string.format("Deck(s): %d", M.opts.number_of_decks),
     "",
     string.format("Player Cards: %s", deck_handler.display_cards_inline(game_state.player_cards)),
     string.format("Player Value: %d", game_state.player_value),
@@ -92,14 +114,46 @@ local function display_game_state(buf)
   }
 
   if game_state.winner then
-    table.insert(lines, string.format("Game Over! %s win(s)!", game_state.winner))
+    if game_state.winner == "You" then
+      table.insert(lines, "💰 YOU WON! 💰")
+      result_line = #lines - 1
+    else
+      table.insert(lines, string.format("Game Over! %s wins!", game_state.winner))
+      result_line = #lines - 1
+    end
     table.insert(lines, "Press `p` to play again, `q` to quit")
+    instruction_lines = { #lines - 1 }
   else
     table.insert(lines, "Press `=` to increase bet, '-' to decrease bet")
     table.insert(lines, "Press `h` to hit, `s` to stand, `q` to quit")
+    instruction_lines = { #lines - 2, #lines - 1 }
   end
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+  vim.api.nvim_buf_add_highlight(buf, -1, "Title", 0, 0, -1)
+
+  for i, line in ipairs(lines) do
+    local line_index = i - 1
+    if line:find(": ") then
+      local colon_pos = line:find(": ")
+      local label_end_col = colon_pos + 1
+
+      vim.api.nvim_buf_add_highlight(buf, -1, "Identifier", line_index, 0, label_end_col)
+      vim.api.nvim_buf_add_highlight(buf, -1, "Number", line_index, label_end_col, -1)
+    end
+  end
+
+  -- Highlight result line
+  if result_line then
+    local hl_group = game_state.winner == "You" and "VimcinoWin" or "VimcinoLose"
+    vim.api.nvim_buf_add_highlight(buf, -1, hl_group, result_line, 0, -1)
+  end
+
+  -- Highlight instruction lines
+  for _, line_index in ipairs(instruction_lines) do
+    vim.api.nvim_buf_add_highlight(buf, -1, "Comment", line_index, 0, -1)
+  end
 end
 
 --- Setting up controls for the game
@@ -258,7 +312,7 @@ function M.setup()
   end
 
   reset_game_state()
-
+  h.setup_hl()
   local buf = vim.api.nvim_create_buf(false, true)
   game_state.buf = buf
 

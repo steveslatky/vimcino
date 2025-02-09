@@ -7,18 +7,22 @@ local M = {}
 ---@field starting_number number Number you start the roll with
 ---@field computer_start boolean If true computer will start the game
 
----@class vimcino.Config
----@field stats_file? string Path to the statistics file
----@field blackjack blackjack.Config Blackjack game configuration
----@field deathroll deathroll.Config Blackjack game configuration
+---@class stats.Config
+---@field file_loc? string Path to the statistics file
 
--- Private module state
+---@class vimcino.Config
+---@field stats stats.Config Stats configuration
+---@field blackjack blackjack.Config Blackjack game configuration
+---@field deathroll deathroll.Config Deathroll game configuration
+
 local Options = {}
 
 -- Default configuration with documentation
 ---@type vimcino.Config
 M.default_config = {
-  stats_file = nil,
+  stats = {
+    file_loc = nil,
+  },
   blackjack = {
     number_of_decks = 1,
   },
@@ -37,7 +41,7 @@ local function validate_config(config)
     return false, "blackjack.number_of_decks must be a number"
   end
 
-  if config.stats_file and type(config.stats_file) ~= "string" then
+  if config.stats.file_loc and type(config.stats.file_loc) ~= "string" then
     return false, "stats_file must be a string"
   end
 
@@ -54,15 +58,22 @@ local function extend(config)
   return vim.tbl_deep_extend("force", vim.deepcopy(M.default_config), config)
 end
 
--- Get the current configuration
----@return vimcino.Config
-function M.get_config()
+-- Get the current configuration (full or specific module)
+---@overload fun(): vimcino.Config
+---@overload fun(module: "blackjack"): blackjack.Config
+---@overload fun(module: "deathroll"): deathroll.Config
+---@overload fun(module: "stats"): stats.Config
+---@param module? string
+---@return vimcino.Config | blackjack.Config | deathroll.Config
+function M.get_config(module)
+  if module then
+    return vim.deepcopy(Options[module] or {})
+  end
   return vim.deepcopy(Options)
 end
 
 -- Setup options
 ---@param opts? vimcino.Config User defined options
----@return vimcino.Config Options used by the application
 ---@error "Invalid configuration" when the configuration is invalid
 function M.setup(opts)
   local config = extend(opts)
@@ -74,7 +85,6 @@ function M.setup(opts)
   end
 
   Options = config
-  return M.get_config()
 end
 
 return M

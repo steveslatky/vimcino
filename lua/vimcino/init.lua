@@ -16,9 +16,8 @@ local function create_commands()
 end
 
 function M.setup(opts)
-  opts = Config.setup(opts)
-
-  Stats.setup(opts)
+  Config.setup(opts)
+  Stats.setup()
   create_commands()
 end
 

@@ -7,6 +7,7 @@
   - [Installation](#installation)
     - [[Lazy.nvim](https://github.com/folke/lazy.nvim)](#lazynvimhttpsgithubcomfolkelazynvim)
     - [[Vim Plug](https://github.com/junegunn/vim-plug)](#vim-plughttpsgithubcomjunegunnvim-plug)
+    - [[Mini Deps](https://github.com/echasnovski/mini.deps)](#mini-depshttpsgithubcomechasnovskiminideps)
   - [Commands](#commands)
   - [Games](#games)
     - [Deathroll](#deathroll)

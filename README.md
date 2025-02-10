@@ -1,4 +1,21 @@
+
 # 🎮 Vimcino - Neovim Casino! 
+
+<!--toc:start-->
+- [🎮 Vimcino - Neovim Casino!](#🎮-vimcino-neovim-casino)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [[Lazy.nvim](https://github.com/folke/lazy.nvim)](#lazynvimhttpsgithubcomfolkelazynvim)
+    - [[Vim Plug](https://github.com/junegunn/vim-plug)](#vim-plughttpsgithubcomjunegunnvim-plug)
+  - [Commands](#commands)
+  - [Games](#games)
+    - [Deathroll](#deathroll)
+      - [Core Rules:](#core-rules)
+    - [🃏 Blackjack (21)](#🃏-blackjack-21)
+      - [Objective](#objective)
+    - [Card Values](#card-values)
+    - [Gameplay Flow](#gameplay-flow)
+<!--toc:end-->
 
 Need a little break to gamble your life savings away?! Well stop on in to the vimcino where we will be happy 
 to take the weight of all that virtual cash off your hands!
@@ -20,16 +37,33 @@ Using your favorite package manager:
 ```lua
 {
   "steveslatky/vimcino",
-  config = function()
-    require("vimcino").setup()
-  end
-}
+  --- optional custom options
+  ---@field vimcino.Config
+	opts = {
+		stats = { file_loc = "/custom/file/location" },
+		blackjack = {
+			number_of_decks = 1,
+		},
+	},
+},
 ```
 
 ### [Vim Plug](https://github.com/junegunn/vim-plug)
   ```lua
 Plug 'your-username/vimcino'
-lua require("vimcino").setup()
+lua require("vimcino").setup(opts)
+```
+
+### [Mini Deps](https://github.com/echasnovski/mini.deps)
+```lua
+add({
+  source = 'neovim/nvim-lspconfig',
+  config = function()
+    -- Plugin configuration
+    ---@field vimcino.Config
+    require('vimcino').setup(opts)
+  end
+})
 ```
 
 ## Commands 

@@ -20,7 +20,7 @@
 Need a little break to gamble your life savings away?! Well stop on in to the vimcino where we will be happy 
 to take the weight of all that virtual cash off your hands!
 
-![Demo GIF](./docs/demo.gif) 
+![Demo GIF](./assets/demo.gif) 
 
 ## Features
 

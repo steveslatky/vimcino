@@ -1,0 +1,202 @@
+*vimcino.txt*           For NVIM v0.8.0          Last change: 2025 February 11
+
+==============================================================================
+Table of Contents                                  *vimcino-table-of-contents*
+
+1. 🎮 Vimcino - Neovim Casino!       |vimcino-🎮-vimcino---neovim-casino!|
+  - Features                  |vimcino-🎮-vimcino---neovim-casino!-features|
+  - Installation          |vimcino-🎮-vimcino---neovim-casino!-installation|
+  - Configuration        |vimcino-🎮-vimcino---neovim-casino!-configuration|
+  - Commands                  |vimcino-🎮-vimcino---neovim-casino!-commands|
+  - Games                        |vimcino-🎮-vimcino---neovim-casino!-games|
+  - Reward System        |vimcino-🎮-vimcino---neovim-casino!-reward-system|
+2. Links                                                       |vimcino-links|
+
+==============================================================================
+1. 🎮 Vimcino - Neovim Casino!       *vimcino-🎮-vimcino---neovim-casino!*
+
+- |vimcino-🎮-vimcino---neovim-casino!|
+    - |vimcino-features|
+    - |vimcino-installation|
+        - |vimcino-[lazy.nvim](https://github.com/folke/lazy.nvim)|
+        - |vimcino-[vim-plug](https://github.com/junegunn/vim-plug)|
+        - |vimcino-[mini-deps](https://github.com/echasnovski/mini.deps)|
+    - |vimcino-commands|
+    - |vimcino-games|
+        - |vimcino-deathroll|
+            - |vimcino-core-rules:|
+        - |vimcino-🃏-blackjack-(21)|
+            - |vimcino-objective|
+        - |vimcino-card-values|
+        - |vimcino-gameplay-flow|
+
+Need a little break to gamble your life savings away?! Well stop on in to the
+vimcino where we will be happy to take the weight of all that virtual cash off
+your hands!
+
+
+FEATURES                      *vimcino-🎮-vimcino---neovim-casino!-features*
+
+- 🕹️ **In-Editor Games** (Deathroll, Blackjack, maybe more in the future!)
+- 🏆 **Game Statistics Tracking** (Wins/Losses/Currency)
+- 💰 **Virtual Currency System** (That does nothing!)
+- 🔄 **Save File Persistence**
+- 🎆 **Reward System** If your mind is so broken you need to gameify everything!
+
+
+INSTALLATION              *vimcino-🎮-vimcino---neovim-casino!-installation*
+
+Using your favorite package manager:
+
+
+LAZY.NVIM ~
+
+>lua
+    {
+      "steveslatky/vimcino",
+      --- optional custom options
+      ---@field vimcino.Config
+        opts = {
+        -- Change up the functionally if wanted
+        },
+    },
+<
+
+
+VIM PLUG ~
+
+>lua
+    Plug 'your-username/vimcino'
+    lua require("vimcino").setup(opts)
+<
+
+
+MINI DEPS ~
+
+>lua
+    add({
+      source = 'neovim/nvim-lspconfig',
+      config = function()
+        -- Plugin configuration
+        ---@field vimcino.Config
+        require('vimcino').setup(opts)
+      end
+    })
+<
+
+
+CONFIGURATION            *vimcino-🎮-vimcino---neovim-casino!-configuration*
+
+>lua
+    M.default_config = {
+      stats = {
+        file_loc = nil, -- This will store it in the plugin directory
+      },
+      blackjack = {
+        number_of_decks = 1,
+      },
+      rewards = {
+        enable = false,
+        goal = 10000,
+        value = 100,
+        notify = false,
+      },
+<
+
+
+COMMANDS                      *vimcino-🎮-vimcino---neovim-casino!-commands*
+
+>vim
+    :Vimcino " Open the game selector 
+    :VimcinoStats " View your stats
+<
+
+
+GAMES                            *vimcino-🎮-vimcino---neovim-casino!-games*
+
+
+DEATHROLL ~
+
+Deathroll is a high-stakes dice game of chance and diminishing odds,
+popularized in World of Warcraft. Players take turns rolling a virtual die with
+ever-shrinking numbers until one participant lands on 1 and loses the round.
+
+
+CORE RULES:
+
+Starting Number: Players agree on an initial number (e.g., 1000)
+
+Turn Sequence:
+
+Player 1 rolls between 1 and starting number Computer then rolls between 1 and
+Player 1’s result This continues until someone rolls 1 Loss Condition: The
+player who rolls 1 loses the round
+
+
+🃏 BLACKJACK (21) ~
+
+A classic casino card game where players compete against the dealer to reach
+the closest hand value to **21** without going over.
+
+
+OBJECTIVE
+
+- Beat the dealer by having:
+    - A higher hand value without exceeding 21
+    - Letting the dealer bust (exceed 21)
+    - A natural blackjack (Ace + 10-value card) unless dealer also has one
+
+
+CARD VALUES ~
+
+  Cards     Value
+  --------- ---------------------------
+  2-10      Face value
+  J, Q, K   10
+  A         1 or 11 (player’s choice)
+
+GAMEPLAY FLOW ~
+
+1. **Place Bet**: Risk virtual currency
+2. **Initial Deal**:- Player receives 2 face-up cards
+- Dealer gets 1 face-up and 1 face-down card
+
+
+3. **Player Actions**:- **Hit**: Take another card
+- **Stand**: Keep current hand
+
+
+4. **Dealer Reveal**: Dealer reveals hidden card and draws until reaching 17+
+5. **Outcome**:- **Win**: 1:1 payout (3:2 for natural blackjack)
+- **Lose**: Forfeit bet
+- **Push**: Tie (return bet)
+
+
+
+
+REWARD SYSTEM            *vimcino-🎮-vimcino---neovim-casino!-reward-system*
+
+Gives you currency for pressing enough keys!
+
+According to my middle manager, key presses is the ultimate form of
+productivity. So you should be rewarded with some fake money to make you the
+most productive! You have full control how this system works for you.
+
+>lua
+    default_opts = {
+      rewards = {
+        enable = false, -- Won't work if false 
+        goal = 10000, -- Number of key presses needed to be rewarded
+        value = 100,  -- Amount you get rewarded with
+        notify = false, -- lets you know every time you met the goal
+      },
+<
+
+==============================================================================
+2. Links                                                       *vimcino-links*
+
+1. *Demo GIF*: ./assets/demo.gif
+
+Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
+
+vim:tw=78:ts=8:noet:ft=help:norl:

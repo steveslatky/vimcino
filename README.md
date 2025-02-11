@@ -1,6 +1,8 @@
 
 # 🎮 Vimcino - Neovim Casino! 
 
+![Vimcino](./assets/vimcino.png) 
+
 <!--toc:start-->
 - [🎮 Vimcino - Neovim Casino!](#🎮-vimcino-neovim-casino)
   - [Features](#features)

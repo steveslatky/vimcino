@@ -29,6 +29,7 @@ to take the weight of all that virtual cash off your hands!
 - 🏆 **Game Statistics Tracking** (Wins/Losses/Currency)
 - 💰 **Virtual Currency System** (That does nothing!)
 - 🔄 **Save File Persistence** 
+- 🎆 **Reward System** If your mind is so broken you need to gameify everything! 
 
 ## Installation
 
@@ -41,10 +42,7 @@ Using your favorite package manager:
   --- optional custom options
   ---@field vimcino.Config
 	opts = {
-		stats = { file_loc = "/custom/file/location" },
-		blackjack = {
-			number_of_decks = 1,
-		},
+    -- Change up the functionally if wanted
 	},
 },
 ```
@@ -66,6 +64,24 @@ add({
   end
 })
 ```
+
+## Configuration
+
+```lua
+M.default_config = {
+  stats = {
+    file_loc = nil, -- This will store it in the plugin directory
+  },
+  blackjack = {
+    number_of_decks = 1,
+  },
+  rewards = {
+    enable = false,
+    goal = 10000,
+    value = 100,
+    notify = false,
+  },
+  ```
 
 ## Commands 
 
@@ -123,3 +139,21 @@ A classic casino card game where players compete against the dealer to reach the
    - **Lose**: Forfeit bet
    - **Push**: Tie (return bet)
 
+
+## Reward System
+
+Gives you currency for pressing enough keys! 
+
+According to my middle manager, key presses is the ultimate form of productivity. So you should be rewarded with 
+some fake money to make you the most productive! You have full control how this system works for you.
+
+
+```lua
+default_opts = {
+  rewards = {
+    enable = false, -- Won't work if false 
+    goal = 10000, -- Number of key presses needed to be rewarded
+    value = 100,  -- Amount you get rewarded with
+    notify = false, -- lets you know every time you met the goal
+  },
+```

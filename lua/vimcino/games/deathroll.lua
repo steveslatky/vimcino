@@ -53,11 +53,11 @@ local function display_game_state(buf)
   local lines = {
     "=== Deathroll Game ===",
     bet_handler.get_bet(buf) and string.format("Bet: %d", bet_handler.get_bet(buf)) or "Bet: 25",
+    string.format("Money Held: %d", stats.get_bank_value()),
     "",
     string.format("Starting Number: %d", game_state.starting_number),
     string.format("Current Number: %d", game_state.current_number),
     string.format("Current Player: %s", game_state.current_player),
-    string.format("Last Roll: %s", game_state.last_roll or "N/A"),
     "",
   }
 

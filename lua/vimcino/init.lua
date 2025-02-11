@@ -18,6 +18,7 @@ end
 function M.setup(opts)
   Config.setup(opts)
   Stats.setup()
+  require("vimcino.rewards_system").setup()
   create_commands()
 end
 

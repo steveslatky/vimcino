@@ -1,24 +1,31 @@
 local M = {}
 
----@class blackjack.Config
+---@class blackjack.config
 ---@field number_of_decks integer Number of decks to use in the game
 
----@class deathroll.Config
+---@class deathroll.config
 ---@field starting_number number Number you start the roll with
 ---@field computer_start boolean If true computer will start the game
 
----@class stats.Config
+---@class stats.config
 ---@field file_loc? string Path to the statistics file
 
----@class vimcino.Config
----@field stats stats.Config Stats configuration
----@field blackjack blackjack.Config Blackjack game configuration
----@field deathroll deathroll.Config Deathroll game configuration
+---@class rewards.config
+---@field enable? boolean enable rewards
+---@field goal number the number of key presses needed for a reward
+---@field value number Value of fake currency to be rewarded with after goal is met
+---@field notify boolean notify you received a reward
+
+---@class vimcino.config
+---@field stats stats.config Stats configuration
+---@field blackjack blackjack.config Blackjack game configuration
+---@field deathroll deathroll.config Deathroll game configuration
+---@field rewards rewards.config Reward system
 
 local Options = {}
 
 -- Default configuration with documentation
----@type vimcino.Config
+---@type vimcino.config
 M.default_config = {
   stats = {
     file_loc = nil,
@@ -30,27 +37,59 @@ M.default_config = {
     starting_number = 1000,
     computer_start = false,
   },
+  rewards = {
+    enable = false,
+    goal = 10000,
+    value = 100,
+    notify = false,
+  },
 }
 
 -- Validate the configuration
----@param config vimcino.Config
+---@param config vimcino.config
 ---@return boolean is_valid
 ---@return string? error_message
 local function validate_config(config)
+  -- Validate blackjack section
   if config.blackjack and type(config.blackjack.number_of_decks) ~= "number" then
     return false, "blackjack.number_of_decks must be a number"
   end
 
-  if config.stats.file_loc and type(config.stats.file_loc) ~= "string" then
-    return false, "stats_file must be a string"
+  -- Validate stats section
+  if config.stats and config.stats.file_loc and type(config.stats.file_loc) ~= "string" then
+    return false, "stats.file_loc must be a string"
   end
 
-  return true
+  -- Validate deathroll section
+  if config.deathroll then
+    if type(config.deathroll.starting_number) ~= "number" then
+      return false, "deathroll.starting_number must be a number"
+    end
+    if type(config.deathroll.computer_start) ~= "boolean" then
+      return false, "deathroll.computer_start must be a boolean"
+    end
+  end
+
+  -- Validate rewards section
+  if config.rewards then
+    if type(config.rewards.enable) ~= "boolean" then
+      return false, "rewards.enable must be a boolean"
+    end
+    if type(config.rewards.goal) ~= "number" then
+      return false, "rewards.goal must be a number"
+    end
+    if type(config.rewards.value) ~= "number" then
+      return false, "rewards.value must be a number"
+    end
+  end
+
+  -- If all checks pass, return true
+  return true, nil
 end
 
 -- Update the default config
----@param config? vimcino.Config
----@return vimcino.Config
+---@param config? vimcino.config
+---@return vimcino.config
 local function extend(config)
   if not config then
     return vim.deepcopy(M.default_config)
@@ -59,12 +98,13 @@ local function extend(config)
 end
 
 -- Get the current configuration (full or specific module)
----@overload fun(): vimcino.Config
----@overload fun(module: "blackjack"): blackjack.Config
----@overload fun(module: "deathroll"): deathroll.Config
----@overload fun(module: "stats"): stats.Config
+---@overload fun(): vimcino.config
+---@overload fun(module: "blackjack"): blackjack.config
+---@overload fun(module: "deathroll"): deathroll.config
+---@overload fun(module: "stats"): stats.config
+---@overload fun(module: "rewards") rewards.config
 ---@param module? string
----@return vimcino.Config | blackjack.Config | deathroll.Config
+---@return vimcino.config | blackjack.config | deathroll.config
 function M.get_config(module)
   if module then
     return vim.deepcopy(Options[module] or {})
@@ -73,7 +113,7 @@ function M.get_config(module)
 end
 
 -- Setup options
----@param opts? vimcino.Config User defined options
+---@param opts? vimcino.config User defined options
 ---@error "Invalid configuration" when the configuration is invalid
 function M.setup(opts)
   local config = extend(opts)

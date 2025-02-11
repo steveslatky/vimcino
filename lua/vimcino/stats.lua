@@ -19,6 +19,18 @@ M.stats = {
   game_history = {},
 }
 
+--- Helper to get currency amount
+---@return number value of currency
+function M.get_bank_value()
+  return M.stats.currency
+end
+
+--- Helper to add currency
+---@param amount number the amount to increase the currency for
+function M.add_bank_value(amount)
+  M.stats.currency = M.stats.currency + amount
+end
+
 --- Gets folder vimcnio folder in vim data directory
 ---@return string folder path
 local function get_default_data_dir()

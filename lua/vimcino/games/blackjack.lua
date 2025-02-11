@@ -1,6 +1,6 @@
 ---@class vimcino.games.blackjack
 ---@field name string
----@field opts blackjack.Config
+---@field opts blackjack.config
 local M = { name = "Blackjack" }
 
 local bet_handler = require("vimcino.bet_handler")

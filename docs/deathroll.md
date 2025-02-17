@@ -1,7 +1,13 @@
+<!--toc:start-->
+- [Deathroll](#deathroll)
+  - [Options](#options)
+  - [Core Rules:](#core-rules)
+- [Controls](#controls)
+<!--toc:end-->
+
 ### Deathroll 
 
 #### Options 
-
 
 ```lua
   ---@class config.deathroll

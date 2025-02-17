@@ -2,6 +2,7 @@
 
 <!--toc:start-->
 - [🃏 Blackjack (21)](#🃏-blackjack-21)
+      - [Options](#options)
   - [Objective](#objective)
     - [Card Values](#card-values)
     - [Gameplay Flow](#gameplay-flow)

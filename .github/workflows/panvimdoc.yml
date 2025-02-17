@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - README.md
-      - docs/**  
+      - docs/**  # Trigger on docs changes
       - .github/workflows/panvimdoc.yml
 
 permissions:
@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     name: pandoc to vimdoc
     steps:
-      - uses: actions/checkout@v4  
+      - uses: actions/checkout@v4
       - uses: kdheepak/panvimdoc@main
         with:
           vimdoc: ${{ github.event.repository.name }}
-          input: 
-            README.md
+          args: 
+            README.md 
             docs/*.md
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:

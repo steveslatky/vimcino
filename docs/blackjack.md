@@ -7,6 +7,15 @@
     - [Gameplay Flow](#gameplay-flow)
 <!--toc:end-->
 
+#### Options 
+
+```lua
+  ---@class config.blackjack
+  blackjack = {
+    number_of_decks = 1,
+  },
+```
+
 A classic casino card game where players compete against the dealer to reach the closest hand value to **21** without going over.
 
 ## Objective

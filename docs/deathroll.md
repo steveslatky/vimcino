@@ -2,7 +2,9 @@
 
 #### Options 
 
+
 ```lua
+  ---@class config.deathroll
   deathroll = {
     starting_number = 1000,
     computer_delay = 1000,

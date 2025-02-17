@@ -9,7 +9,7 @@ some fake money to make you the most productive! You have full control how this 
 ```lua
 default_opts = {
   rewards = {
-    enable = false, -- Won't work if false
+    enable = false, -- Won't work if false 
     goal = 10000, -- Number of key presses needed to be rewarded
     value = 100,  -- Amount you get rewarded with
     notify = false, -- lets you know every time you met the goal

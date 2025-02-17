@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - README.md 
-      - .github/workflows/panvimdoc.yml 
+      - README.md
+      - docs/**  
+      - .github/workflows/panvimdoc.yml
 
 permissions:
   contents: write
@@ -15,10 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     name: pandoc to vimdoc
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4  
       - uses: kdheepak/panvimdoc@main
         with:
           vimdoc: ${{ github.event.repository.name }}
+          input: 
+            README.md
+            docs/*.md
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Auto generate docs"

@@ -5,7 +5,7 @@ local M = {}
 
 ---@class deathroll.config
 ---@field starting_number number Number you start the roll with
----@field computer_start boolean If true computer will start the game
+---@field computer_delay number The amount of milliseconds the computer will wait to roll
 
 ---@class stats.config
 ---@field file_loc? string Path to the statistics file
@@ -35,7 +35,7 @@ M.default_config = {
   },
   deathroll = {
     starting_number = 1000,
-    computer_start = false,
+    computer_delay = 1000,
   },
   rewards = {
     enable = false,

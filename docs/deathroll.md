@@ -1,5 +1,13 @@
 ### Deathroll 
 
+#### Options 
+
+```lua
+  deathroll = {
+    starting_number = 1000,
+    computer_delay = 1000,
+  },
+```
 
 Deathroll is a high-stakes dice game of chance and diminishing odds, popularized in World of Warcraft. Players take turns rolling a virtual die with ever-shrinking numbers until one participant lands on 1 and loses the round.
 

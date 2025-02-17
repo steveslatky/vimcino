@@ -1,8 +1,13 @@
 ---@class vimcinco.games.deathroll
+---@field name string
+---@field opts deathroll.config
 local M = { name = "Deathroll" }
 
 local bet_handler = require("vimcino.bet_handler")
 local stats = require("vimcino.stats")
+
+---@diagnostic disable-next-line: assign-type-mismatch
+M.opts = require("vimcino.config").get_config(string.lower(M.name))
 
 ---@class GameState
 ---@field starting_number integer  # The default starting number for the game (e.g., 1000).
@@ -15,8 +20,8 @@ local stats = require("vimcino.stats")
 
 ---@type GameState
 local game_state = {
-  starting_number = 1000,
-  current_number = 1000,
+  starting_number = M.opts.starting_number or 1000,
+  current_number = M.opts.starting_number or 1000,
   current_player = "You",
   last_roll = nil,
   winner = nil,
@@ -47,6 +52,14 @@ local function update_game_state()
   end
 end
 
+local function display_roll_log()
+  local log = ""
+  for i = #game_state.roll_log, math.max(1, #game_state.roll_log - 5), -1 do
+    log = log .. string.format("  %d", game_state.roll_log[i])
+  end
+  return log
+end
+
 --- Display the game state in the buffer
 ---@param buf number buffer index that will display the game
 local function display_game_state(buf)
@@ -61,7 +74,12 @@ local function display_game_state(buf)
     "",
   }
 
-  -- Store highlight positions
+  if #game_state.roll_log > 0 then
+    table.insert(lines, "Roll History:")
+    table.insert(lines, display_roll_log())
+    table.insert(lines, "")
+  end
+
   local instruction_lines = {}
   local result_line = nil
 
@@ -119,6 +137,7 @@ function M.roll()
   -- Player rolls
   game_state.last_roll = roll_number(game_state.current_number)
   game_state.current_number = game_state.last_roll
+  table.insert(game_state.roll_log, game_state.last_roll)
 
   update_game_state()
   display_game_state(vim.api.nvim_win_get_buf(0))
@@ -127,6 +146,7 @@ function M.roll()
     vim.defer_fn(function()
       game_state.last_roll = roll_number(game_state.current_number)
       game_state.current_number = game_state.last_roll
+      table.insert(game_state.roll_log, game_state.last_roll)
 
       update_game_state()
 
@@ -138,8 +158,8 @@ end
 --- Reset the game state
 local function reset_game_state()
   game_state = {
-    starting_number = 1000,
-    current_number = 1000,
+    starting_number = M.opts.starting_number,
+    current_number = M.opts.starting_number,
     current_player = "You",
     last_roll = nil,
     winner = nil,
@@ -151,7 +171,6 @@ end
 --- Restarts the game to the initial state
 function M.restart()
   reset_game_state()
-  -- bet_handler.create(game_state.buf, 25)
   display_game_state(vim.api.nvim_win_get_buf(0))
 end
 
@@ -190,12 +209,12 @@ function M.setup()
   end)
 
   local width = 50
-  local height = 10
+  local height = 15
   local ui = vim.api.nvim_list_uis()[1]
   local row = math.floor((ui.height - height) / 2)
   local col = math.floor((ui.width - width) / 2)
 
-  local win = vim.api.nvim_open_win(buf, true, {
+  local _ = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
     height = height,

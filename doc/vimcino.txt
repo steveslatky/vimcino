@@ -1,4 +1,4 @@
-*vimcino.txt*           For NVIM v0.8.0          Last change: 2025 February 11
+*vimcino.txt*           For NVIM v0.8.0          Last change: 2025 February 17
 
 ==============================================================================
 Table of Contents                                  *vimcino-table-of-contents*

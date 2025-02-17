@@ -65,8 +65,8 @@ local function validate_config(config)
     if type(config.deathroll.starting_number) ~= "number" then
       return false, "deathroll.starting_number must be a number"
     end
-    if type(config.deathroll.computer_start) ~= "boolean" then
-      return false, "deathroll.computer_start must be a boolean"
+    if type(config.deathroll.computer_delay) ~= "number" then
+      return false, "deathroll.computer_delay must be a number"
     end
   end
 

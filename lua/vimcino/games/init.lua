@@ -1,6 +1,6 @@
 local M = {}
 
-M.game_list = { "Deathroll", "Blackjack" }
+M.game_list = { "Deathroll", "Blackjack", "War" }
 
 function M.setup_hl()
   vim.api.nvim_set_hl(0, "VimcinoWin", { fg = "#98c379", bg = "#1e1e1e" })

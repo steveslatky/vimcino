@@ -1,0 +1,23 @@
+---@class Vimcino.Gamestate.Blackjack
+---@field deck table
+---@field player_cards Deck
+---@field player_value number
+---@field dealer_cards Deck
+---@field dealer_value number
+---@field winner? string
+---@field turn integer
+---@field can_hit boolean
+---@field buf? integer
+---@field default_bet integer
+---@field opts games.blackjack.config
+---
+
+---@class Vimcinco.Gamestate.Deathroll
+---@field starting_number integer  # The default starting number for the game (e.g., 1000).
+---@field current_number integer   # The current roll limit or target number.
+---@field current_player "You" | "Computer"  # The current player ("You" or "Computer").
+---@field last_roll integer | nil  # The result of the last dice roll (nil if no roll has been made yet).
+---@field winner "You" | "Computer" | nil  # The winner of the game (nil if the game is ongoing).
+---@field roll_log integer[]       # A log of all dice rolls made during the game.
+---@field buf number|nil  -- Added buffer reference
+return {}

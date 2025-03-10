@@ -1,25 +1,10 @@
 local M = {}
 
----@class blackjack.config
----@field number_of_decks integer Number of decks to use in the game
-
----@class deathroll.config
----@field starting_number number Number you start the roll with
----@field computer_delay number The amount of milliseconds the computer will wait to roll
-
----@class stats.config
----@field file_loc? string Path to the statistics file
-
----@class rewards.config
----@field enable? boolean enable rewards
----@field goal number the number of key presses needed for a reward
----@field value number Value of fake currency to be rewarded with after goal is met
----@field notify boolean notify you received a reward
-
 ---@class vimcino.config
 ---@field stats stats.config Stats configuration
----@field blackjack blackjack.config Blackjack game configuration
----@field deathroll deathroll.config Deathroll game configuration
+---@field blackjack games.blackjack.config Blackjack game configuration
+---@field deathroll games.deathroll.config Deathroll game configuration
+---@field war games.war.config war game configuration
 ---@field rewards rewards.config Reward system
 
 local Options = {}
@@ -30,18 +15,26 @@ M.default_config = {
   stats = {
     file_loc = nil,
   },
-  blackjack = {
-    number_of_decks = 1,
-  },
   deathroll = {
     starting_number = 1000,
     computer_delay = 1000,
   },
+  war = {
+    number_of_decks = 1,
+  },
+  blackjack = {
+    number_of_decks = 1,
+    hit_delay = 1000,
+  },
+
   rewards = {
     enable = false,
     goal = 10000,
     value = 100,
     notify = false,
+  },
+  display = {
+    hl = { { "VimcinoValue", "" } },
   },
 }
 
@@ -99,15 +92,16 @@ end
 
 -- Get the current configuration (full or specific module)
 ---@overload fun(): vimcino.config
----@overload fun(module: "blackjack"): blackjack.config
----@overload fun(module: "deathroll"): deathroll.config
+---@overload fun(module: "blackjack"): games.blackjack.config
+---@overload fun(module: "deathroll"): games.deathroll.config
+---@overload fun(module: "war"): games.war.config
 ---@overload fun(module: "stats"): stats.config
 ---@overload fun(module: "rewards") rewards.config
 ---@param module? string
----@return vimcino.config | blackjack.config | deathroll.config
+---@return vimcino.config | games.blackjack.config | games.deathroll.config | games.war.config
 function M.get_config(module)
   if module then
-    return vim.deepcopy(Options[module] or {})
+    return vim.deepcopy(Options[string.lower(module)] or {})
   end
   return vim.deepcopy(Options)
 end

@@ -6,6 +6,7 @@ local M = {
 }
 
 M.opts = require("vimcino.config").get_config(M.name)
+local win = require("stack.win")
 
 ---@class Stats
 ---@field currency number
@@ -145,70 +146,26 @@ end
 
 --- Opens a floating window to show stats
 function M.show_stats()
-  local buf = vim.api.nvim_create_buf(false, true)
-
-  local width = 50
-  local height = 10
-
-  local ui = vim.api.nvim_list_uis()[1]
-  local row = math.floor((ui.height - height) / 2)
-  local col = math.floor((ui.width - width) / 2)
-
-  local win = vim.api.nvim_open_win(buf, true, {
-    relative = "editor",
-    width = width,
-    height = height,
-    row = row,
-    col = col,
-    style = "minimal",
-    border = "rounded",
-  })
-
-  -- Add stats content to the buffer
+  local opts = win.CenteredModal
+  opts.w.title = "Vimcino Stats"
+  local buf, _ = win.create_window(opts)
   local stats = M.stats or {} -- Ensure stats is initialized
-  local lines = {
-    "=== Vimcino Stats ===",
-    "",
-    string.format("Currency: %d", stats.currency or 0),
 
-    string.format("Wins: %d", stats.wins or 0),
-    string.format("Losses: %d", stats.losses or 0),
-    string.format("Games Played: %d", stats.games_played or 0),
-    string.format("Most Played: %s", get_most_played() or "N/A"),
-    "",
-    "Press `q` to close",
-  }
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  local lines = {}
+  table.insert(lines, string.format("Currency: %d", stats.currency or 0))
+  table.insert(lines, string.format("Wins: %d", stats.wins or 0))
+  table.insert(lines, string.format("Losses: %d", stats.losses or 0))
+  table.insert(lines, string.format("Games Played: %d", stats.games_played or 0))
+  table.insert(lines, string.format("Most Played: %s", get_most_played() or "N/A"))
 
-  -- Highlight title
-  vim.api.nvim_buf_add_highlight(buf, -1, "Title", 0, 0, -1)
+  local hl = require("stack.win.hl")
+  local highlights = {}
 
-  -- Highlight each stat line
-  for i, line in ipairs(lines) do
-    local line_index = i - 1 -- Convert to 0-based index
-    if line:find(": ") then
-      local colon_pos = line:find(": ")
-      local label_end_col = colon_pos + 1
+  vim.list_extend(highlights, hl.find_pattern(lines, "^([^:]+):", "VimcinoLabel"))
+  vim.list_extend(highlights, hl.find_pattern(lines, ": ([%d%w%s]+)$", "VimcinoValue"))
 
-      vim.api.nvim_buf_add_highlight(buf, -1, "Identifier", line_index, 0, label_end_col)
-
-      if line:find("Most Played: ") then
-        vim.api.nvim_buf_add_highlight(buf, -1, "String", line_index, label_end_col, -1)
-      else
-        vim.api.nvim_buf_add_highlight(buf, -1, "Number", line_index, label_end_col, -1)
-      end
-    end
-  end
-
-  -- Highlight keybindings
-  vim.api.nvim_buf_add_highlight(buf, -1, "Comment", 8, 0, -1)
-
-  vim.api.nvim_buf_set_keymap(buf, "n", "q", ":q<CR>", { noremap = true, silent = true })
-  vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":q<CR>", { noremap = true, silent = true })
-
-  vim.api.nvim_set_option_value("filetype", "vimcino_stats", { buf = buf })
-  vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
-  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+  local content = { lines = lines, highlights = highlights }
+  win.render(buf, content)
 end
 
 return M

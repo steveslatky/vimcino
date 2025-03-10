@@ -1,14 +1,19 @@
 ---@class vimcino
 local M = {}
+Log = require("stack.log")
 
-local Config = require("vimcino.config")
 local Selector = require("vimcino.selector")
 local Stats = require("vimcino.stats")
 
+--- Creates all commands
 local function create_commands()
-  vim.api.nvim_create_user_command("Vimcino", function()
-    Selector.show()
-  end, {})
+  vim.api.nvim_create_user_command("Vimcino", function(opts)
+    if opts.args and opts.args ~= "" then
+      Selector.start_game(opts.args)
+    else
+      Selector.show()
+    end
+  end, { nargs = "?" })
 
   vim.api.nvim_create_user_command("VimcinoStats", function()
     Stats.show_stats()
@@ -16,8 +21,8 @@ local function create_commands()
 end
 
 function M.setup(opts)
-  Config.setup(opts)
-  Stats.setup()
+  require("vimcino.config").setup(opts)
+  require("vimcino.stats").setup()
   require("vimcino.rewards_system").setup()
   create_commands()
 end

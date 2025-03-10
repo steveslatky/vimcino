@@ -1,32 +1,30 @@
 ---@class vimcino.games.blackjack
 ---@field name string
----@field opts blackjack.config
+---@field opts games.blackjack.config
 local M = { name = "Blackjack" }
 
+local animate = require("stack.animation.win")
 local bet_handler = require("vimcino.bet_handler")
 local config = require("vimcino.config")
 local deck_handler = require("vimcino.cards")
-local h = require("vimcino.games.init")
+local display_blackjack = require("vimcino.display.blackjack")
 local stats = require("vimcino.stats")
 
+local default_opts = {
+  number_of_decks = 1,
+  hit_delay = 1000,
+}
 ---@diagnostic disable-next-line: assign-type-mismatch
-M.opts = config.get_config(string.lower(M.name))
-
----@class GameState.Blackjack
----@field deck table
----@field player_cards Deck
----@field dealer_cards Deck
----@field winner? string
----@field turn integer
----@field buf? integer
----@field default_bet integer
+M.opts = config.get_config(M.name) or default_opts
 
 -- Private module state
----@type GameState.Blackjack
+---@type Vimcino.Gamestate.Blackjack
 local game_state = {
   deck = {},
+  ---@diagnostic disable-next-line: missing-fields
   player_cards = {},
   player_value = 0,
+  ---@diagnostic disable-next-line: missing-fields
   dealer_cards = {},
   dealer_value = 0,
   winner = nil,
@@ -34,26 +32,23 @@ local game_state = {
   buf = nil,
   default_bet = 25,
   can_hit = true,
+  opts = M.opts,
 }
 
-local HIGHLIGHT_GROUPS = {
-  header = "Title",
-  label = "Identifier",
-  value = "Constant",
-  card = "String",
-  win = "DiffAdd",
-  lose = "Error",
-  push = "WarningMsg",
-  hidden = "Comment",
-}
-
--- Constants
-local WINDOW_CONFIG = {
-  width = 70,
-  height = 15,
-  style = "minimal",
-  border = "rounded",
-}
+local function display_game_state(state, buf)
+  assert(vim.api.nvim_buf_is_valid(buf), "Invalid buffer handle")
+  local content = display_blackjack.generate_content(state)
+  display_blackjack.render(buf, content)
+  if game_state.winner == "You" then
+    animate.flash_border(M.win, {
+      duration = 1500,
+      interval = 150,
+      highlights = { "StackPurple", "StackGreen" },
+    })
+  elseif game_state.winner == "Dealer" then
+    animate.flash_border(M.win, "error")
+  end
+end
 
 --- Updates value of all cards for each hand
 local function update_values()
@@ -81,79 +76,8 @@ local function update_values()
   game_state.dealer_value = calculate_hand_value(game_state.dealer_cards)
 end
 
---- Display the game state in the buffer
----@param buf integer Buffer index that will display the game
-local function display_game_state(buf)
-  local current_bet = bet_handler.get_bet(buf) or game_state.default_bet
-  local dealer_display = ""
-  local dealer_display_value = 0
-
-  if game_state.can_hit then
-    ---@diagnostic disable-next-line: missing-fields
-    dealer_display = "[HIDDEN], " .. deck_handler.display_cards_inline({ game_state.dealer_cards[2] })
-    dealer_display_value = game_state.dealer_cards[2].value
-  else
-    dealer_display = deck_handler.display_cards_inline(game_state.dealer_cards)
-    dealer_display_value = game_state.dealer_value
-  end
-
-  local instruction_lines = {}
-  local result_line = nil
-
-  local lines = {
-    "=== Blackjack ===",
-    string.format("Bet: %d", current_bet),
-    string.format("Deck(s): %d", M.opts.number_of_decks),
-    "",
-    string.format("Player Cards: %s", deck_handler.display_cards_inline(game_state.player_cards)),
-    string.format("Player Value: %d", game_state.player_value),
-    "",
-    string.format("Dealer Cards: %s", dealer_display),
-    string.format("Dealer Value: %d", dealer_display_value),
-    "",
-  }
-
-  if game_state.winner then
-    if game_state.winner == "You" then
-      table.insert(lines, "💰 YOU WON! 💰")
-      result_line = #lines - 1
-    else
-      table.insert(lines, string.format("Game Over! %s wins!", game_state.winner))
-      result_line = #lines - 1
-    end
-    table.insert(lines, "Press `p` to play again, `q` to quit")
-    instruction_lines = { #lines - 1 }
-  else
-    table.insert(lines, "Press `=` to increase bet, '-' to decrease bet")
-    table.insert(lines, "Press `h` to hit, `s` to stand, `q` to quit")
-    instruction_lines = { #lines - 2, #lines - 1 }
-  end
-
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-  vim.api.nvim_buf_add_highlight(buf, -1, "Title", 0, 0, -1)
-
-  for i, line in ipairs(lines) do
-    local line_index = i - 1
-    if line:find(": ") then
-      local colon_pos = line:find(": ")
-      local label_end_col = colon_pos + 1
-
-      vim.api.nvim_buf_add_highlight(buf, -1, "Identifier", line_index, 0, label_end_col)
-      vim.api.nvim_buf_add_highlight(buf, -1, "Number", line_index, label_end_col, -1)
-    end
-  end
-
-  -- Highlight result line
-  if result_line then
-    local hl_group = game_state.winner == "You" and "VimcinoWin" or "VimcinoLose"
-    vim.api.nvim_buf_add_highlight(buf, -1, hl_group, result_line, 0, -1)
-  end
-
-  -- Highlight instruction lines
-  for _, line_index in ipairs(instruction_lines) do
-    vim.api.nvim_buf_add_highlight(buf, -1, "Comment", line_index, 0, -1)
-  end
+function M.flash()
+  animate.flash_border(M.win, "win")
 end
 
 --- Setting up controls for the game
@@ -164,6 +88,7 @@ local function setup_keybindings(buf)
     { mode = "n", lhs = "h", rhs = ":lua require('vimcino.games.blackjack').hit()<CR>" },
     { mode = "n", lhs = "s", rhs = ":lua require('vimcino.games.blackjack').stand()<CR>" },
     { mode = "n", lhs = "p", rhs = ":lua require('vimcino.games.blackjack').restart()<CR>" },
+    { mode = "n", lhs = "t", rhs = ":lua require('vimcino.games.blackjack').flash()<CR>" },
     { mode = "n", lhs = "q", rhs = ":q<CR>" },
   }
 
@@ -174,6 +99,8 @@ local function setup_keybindings(buf)
   bet_handler.setup_keybindings(buf)
 end
 
+--- Draw from the deck
+---@return Card
 local function draw()
   return table.remove(game_state.deck)
 end
@@ -184,8 +111,10 @@ local function reset_game_state()
 
   game_state = {
     deck = deck_handler.shuffle(deck_handler.gen_deck(conf.blackjack.number_of_decks)),
+    ---@diagnostic disable-next-line: missing-fields
     player_cards = {},
     player_value = 0,
+    ---@diagnostic disable-next-line: missing-fields
     dealer_cards = {},
     dealer_value = 0,
     winner = nil,
@@ -193,31 +122,13 @@ local function reset_game_state()
     buf = game_state.buf,
     default_bet = 25,
     can_hit = true,
+    opts = M.opts,
   }
   table.insert(game_state.dealer_cards, draw())
   table.insert(game_state.dealer_cards, draw())
   table.insert(game_state.player_cards, draw())
   table.insert(game_state.player_cards, draw())
   update_values()
-end
-
---- Create centered window
----@param buf integer Buffer to display
----@return integer win Window handle
-local function create_centered_window(buf)
-  local ui = vim.api.nvim_list_uis()[1]
-  local row = math.floor((ui.height - WINDOW_CONFIG.height) / 2)
-  local col = math.floor((ui.width - WINDOW_CONFIG.width) / 2)
-
-  return vim.api.nvim_open_win(buf, true, {
-    relative = "editor",
-    width = WINDOW_CONFIG.width,
-    height = WINDOW_CONFIG.height,
-    row = row,
-    col = col,
-    style = WINDOW_CONFIG.style,
-    border = WINDOW_CONFIG.border,
-  })
 end
 
 --- Find the winder of the game
@@ -247,12 +158,12 @@ local function choose_winner()
     end
   end
 
-  display_game_state(game_state.buf)
+  display_game_state(game_state, game_state.buf)
 end
 
 local function dealers_turn()
   local function draw_step()
-    display_game_state(game_state.buf)
+    display_game_state(game_state, game_state.buf)
 
     if game_state.dealer_value < 17 then
       vim.defer_fn(function()
@@ -275,7 +186,7 @@ end
 --- Player is done taking cards, dealers turn
 function M.stand()
   game_state.can_hit = false
-  display_game_state(game_state.buf)
+  display_game_state(game_state, game_state.buf)
   dealers_turn()
 end
 
@@ -284,12 +195,20 @@ function M.hit()
   if not game_state.can_hit or game_state.player_value > 21 then
     return
   end
-  table.insert(game_state.player_cards, draw())
+
+  -- Ensure we have a valid buffer reference
+  if not game_state.buf or not vim.api.nvim_buf_is_valid(game_state.buf) then
+    vim.notify("No valid game window found!", vim.log.levels.ERROR)
+    return
+  end
+
+  local drawn = draw()
+  table.insert(game_state.player_cards, drawn)
   update_values()
 
-  if game_state.buf then
-    display_game_state(game_state.buf)
-  end
+  -- Add visual feedback for the new card
+  -- display_blackjack.animate_card_reveal(game_state.buf, #game_state.player_cards)
+  display_game_state(game_state, game_state.buf)
 
   if game_state.player_value > 21 then
     game_state.can_hit = false
@@ -300,29 +219,29 @@ end
 --- Restart the game to play again
 function M.restart()
   reset_game_state()
-  if game_state.buf then
-    display_game_state(game_state.buf)
+  if game_state.buf and vim.api.nvim_buf_is_valid(game_state.buf) then
+    display_game_state(game_state, game_state.buf)
   end
 end
 
---- Setup game window
+--- Setup the game
 function M.setup()
-  if not config.get_config().blackjack then
-    error("Blackjack configuration not found. Please run setup() first.")
+  if game_state.buf and vim.api.nvim_buf_is_valid(game_state.buf) then
+    vim.api.nvim_buf_delete(game_state.buf, { force = true })
   end
 
-  reset_game_state()
-  h.setup_hl()
-  local buf = vim.api.nvim_create_buf(false, true)
+  local buf, win = display_blackjack.create_window()
   game_state.buf = buf
+  M.win = win
 
-  bet_handler.create(buf, game_state.default_bet, function(bufnr)
-    display_game_state(bufnr)
+  require("vimcino.bet_handler").create(buf, game_state.default_bet, function(buf)
+    display_game_state(game_state, buf)
   end)
 
-  create_centered_window(buf)
-  display_game_state(buf)
   setup_keybindings(buf)
+
+  reset_game_state()
+  display_game_state(game_state, buf)
 end
 
 -- Alias for setup for easier startup

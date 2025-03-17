@@ -16,7 +16,7 @@ function M.create_window()
   opts.w.width = 70
   opts.w.height = 18
   opts.w.title = "Blackjack"
-  base.setup_highlights(hl.ns_id)
+  base.setup_highlights()
   return base.create_window(opts)
 end
 

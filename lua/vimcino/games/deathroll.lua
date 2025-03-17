@@ -136,7 +136,6 @@ end
 --- Setup the game
 function M.setup()
   reset_game_state()
-  require("vimcino.games.init").setup_hl()
 
   local buf, win = display_deathroll.create_window()
   game_state.buf = buf

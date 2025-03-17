@@ -216,26 +216,37 @@ end
 function M.create_window(config)
   if config ~= nil then
     config.w.footer = " 'q' to Quit, 'p' to Play again "
-    M.bufId, M.winId = win.create_window(config)
+    local window = win.new(config)
+    M.bufId, M.winId = window.id, window.buffers[1]
+
     return M.bufId, M.winId
   end
-  M.bufId, M.winId = win.create_window(config)
+  local window = win.new(config)
+  M.bufId, M.winId = window.id, window.buffers[1]
   return M.bufId, M.winId
 end
 
 ---Set up default highlight groups
-function M.setup_highlights(ns_id)
-  local hg = {
-    VimcinoHeader = { fg = "#FFD700", bold = true },
-    VimcinoLabel = { fg = "#569CD6" },
-    VimcinoHidden = { fg = "#CE9178" },
-    VimcinoCard = { fg = "#FFFFFF" },
-    VimcinoInstruction = { fg = "#808080" },
-    VimcinoHidden = { fg = "#696969" },
-    VimcinoWin = { fg = "#98C379", bold = true },
-    VimcinoLose = { fg = "#E06C75", bold = true },
+function M.setup_highlights(opts)
+  opts = opts or {}
+  local default_links = {
+    VimcinoHeader = "Title",
+    VimcinoLabel = "Statement",
+    VimcinoValue = "Normal",
+    VimcinoCard = "Normal",
+    VimcinoInstruction = "Comment",
+    VimcinoHidden = "NonText",
+    VimcinoWin = "DiagnosticOk",
+    VimcinoLose = "DiagnosticError",
   }
-  hl.setup_highlight_groups(hg)
+
+  for group_name, link_or_def in pairs(vim.tbl_deep_extend("force", default_links, opts)) do
+    if type(link_or_def) == "string" then
+      vim.api.nvim_set_hl(0, group_name, { link = link_or_def })
+    else
+      vim.api.nvim_set_hl(0, group_name, link_or_def)
+    end
+  end
 end
 
 ---Render content to buffer with highlighting

@@ -16,7 +16,7 @@ function M.create_window()
   opts.w.width = 60
   opts.w.height = 14
   opts.w.title = "Deathroll"
-  base.setup_highlights(hl.ns_id)
+  base.setup_highlights()
   return base.create_window(opts)
 end
 

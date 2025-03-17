@@ -1,15 +1,16 @@
 
-# 🎮 Vimcino - Neovim Casino! 
+# Vimcino - Neovim Casino! 
 
 ![Vimcino](./assets/vimcino.png) 
 
 <!--toc:start-->
-- [🎮 Vimcino - Neovim Casino!](#🎮-vimcino-neovim-casino)
+- [Vimcino - Neovim Casino!](#vimcino-neovim-casino)
   - [Features](#features)
   - [Installation](#installation)
     - [[Lazy.nvim](https://github.com/folke/lazy.nvim)](#lazynvimhttpsgithubcomfolkelazynvim)
     - [[Vim Plug](https://github.com/junegunn/vim-plug)](#vim-plughttpsgithubcomjunegunnvim-plug)
     - [[Mini Deps](https://github.com/echasnovski/mini.deps)](#mini-depshttpsgithubcomechasnovskiminideps)
+  - [Configuration](#configuration)
   - [Commands](#commands)
   - [Games](#games)
     - [Deathroll](#deathroll)
@@ -18,6 +19,7 @@
       - [Objective](#objective)
     - [Card Values](#card-values)
     - [Gameplay Flow](#gameplay-flow)
+  - [Reward System](#reward-system)
 <!--toc:end-->
 
 Need a little break to gamble your life savings away?! Well stop on in to the vimcino where we will be happy 
@@ -30,7 +32,8 @@ to take the weight of all that virtual cash off your hands!
 - 🕹️ **In-Editor Games** (Deathroll, Blackjack, maybe more in the future!)
 - 🏆 **Game Statistics Tracking** (Wins/Losses/Currency)
 - 💰 **Virtual Currency System** (That does nothing!)
-- 🔄 **Save File Persistence** 
+- 🔄 **Save File Persistence**  
+- 🎁 **Animations** Lots of bling to make you forget time passes by and you are wasting it gambling 
 - 🎆 **Reward System** If your mind is so broken you need to gameify everything! 
 
 ## Installation
@@ -46,22 +49,25 @@ Using your favorite package manager:
 	opts = {
     -- Change up the functionally if wanted
 	},
+	dependencies = {
+    "steveslatky/stack" -- Plugin framework
+  }
 },
 ```
 
 ### [Vim Plug](https://github.com/junegunn/vim-plug)
   ```lua
-Plug 'your-username/vimcino'
+Plug 'steveslatky/vimcino'
+Plug 'steveslatky/stack'
 lua require("vimcino").setup(opts)
 ```
 
 ### [Mini Deps](https://github.com/echasnovski/mini.deps)
 ```lua
 add({
-  source = 'neovim/nvim-lspconfig',
+  source = 'steveslatky/vimcino',
   config = function()
-    -- Plugin configuration
-    ---@field vimcino.Config
+    ---@param vimcino.Config
     require('vimcino').setup(opts)
   end
 })

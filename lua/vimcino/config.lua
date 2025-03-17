@@ -34,7 +34,16 @@ M.default_config = {
     notify = false,
   },
   display = {
-    hl = { { "VimcinoValue", "" } },
+    hl_groups = {
+      header = "VimcinoHeader",
+      label = "VimcinoLabel",
+      value = "VimcinoValue",
+      card = "VimcinoCard",
+      win = "VimcinoWin",
+      lose = "VimcinoLose",
+      instruction = "VimcinoInstruction",
+      hidden = "VimcinoHidden",
+    },
   },
 }
 

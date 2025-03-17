@@ -8,6 +8,7 @@ local bet_handler = require("vimcino.bet_handler")
 local config = require("vimcino.config")
 local deck_handler = require("vimcino.cards")
 local display_blackjack = require("vimcino.display.blackjack")
+local sparkle = require("stack.animation.sparkles")
 local stats = require("vimcino.stats")
 
 local default_opts = {
@@ -77,7 +78,8 @@ local function update_values()
 end
 
 function M.flash()
-  animate.flash_border(M.win, "win")
+  animate.flash_border(M.win, "vapor_wave")
+  sparkle.add_sparkles()
 end
 
 --- Setting up controls for the game
@@ -234,8 +236,8 @@ function M.setup()
   game_state.buf = buf
   M.win = win
 
-  require("vimcino.bet_handler").create(buf, game_state.default_bet, function(buf)
-    display_game_state(game_state, buf)
+  require("vimcino.bet_handler").create(buf, game_state.default_bet, function(bufid)
+    display_game_state(game_state, bufid)
   end)
 
   setup_keybindings(buf)

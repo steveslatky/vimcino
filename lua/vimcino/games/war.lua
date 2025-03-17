@@ -1,11 +1,15 @@
 ---@class vimcinco.games.war
 ---@field name string
----@field opts war.config
-local M = {}
+---@field opts games.war.config
+local M = { name = "War" }
 
+M.opts = require("vimcino.config").get_config(string.lower(M.name))
+
+local animate = require("stack.animation.win")
 local bet_handler = require("vimcino.bet_handler")
 local deck_handler = require("vimcino.cards")
-local stats = require("vimcino.stats")
+local display_war = require("vimcino.display.war")
+local hl = require("stack.win.hl")
 
 local game_state = {
   inital_deck = {},
@@ -17,63 +21,20 @@ local game_state = {
   buf = nil,
 }
 
-local function display_game_state(buf)
-  local current_bet = bet_handler.get_bet(buf) or game_state.default_bet
+local function display_game_state(state)
+  Log.debug(state)
+  assert(vim.api.nvim_buf_is_valid(state.buf), "Invalid buffer handle")
 
-  local instruction_lines = {}
-  local result_line = nil
-
-  local lines = {
-    "=== WAR ===",
-    string.format("Bet: %d", current_bet),
-    string.format("Deck(s): %d", M.opts.number_of_decks),
-    "",
-    string.format("Player Card: %s", deck_handler.display_cards_inline(game_state.player_active)),
-    "",
-    string.format("Dealer Cards: %s", deck_handler.display_cards_inline(game_state.com_active)),
-    "",
-  }
-
-  if game_state.winner then
-    if game_state.winner == "You" then
-      table.insert(lines, "💰 YOU WON! 💰")
-      result_line = #lines - 1
-    else
-      table.insert(lines, string.format("Game Over! %s wins!", game_state.winner))
-      result_line = #lines - 1
-    end
-    table.insert(lines, "Press `p` to play again, `q` to quit")
-    instruction_lines = { #lines - 1 }
-  else
-    table.insert(lines, "Press `=` to increase bet, '-' to decrease bet")
-    table.insert(lines, "Press `f` to fight, `q` to quit")
-    instruction_lines = { #lines - 2, #lines - 1 }
-  end
-
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-  vim.api.nvim_buf_add_highlight(buf, -1, "Title", 0, 0, -1)
-
-  for i, line in ipairs(lines) do
-    local line_index = i - 1
-    if line:find(": ") then
-      local colon_pos = line:find(": ")
-      local label_end_col = colon_pos + 1
-
-      vim.api.nvim_buf_add_highlight(buf, -1, "Identifier", line_index, 0, label_end_col)
-      vim.api.nvim_buf_add_highlight(buf, -1, "Number", line_index, label_end_col, -1)
-    end
-  end
-
-  -- Highlight result line
-  if result_line then
-    local hl_group = game_state.winner == "You" and "VimcinoWin" or "VimcinoLose"
-    vim.api.nvim_buf_add_highlight(buf, -1, hl_group, result_line, 0, -1)
-  end
-
-  -- Highlight instruction lines
-  for _, line_index in ipairs(instruction_lines) do
-    vim.api.nvim_buf_add_highlight(buf, -1, "Comment", line_index, 0, -1)
+  local content = display_war.generate_content(state)
+  hl.render(game_state.buf, content)
+  if game_state.winner == "You" then
+    animate.flash_border(M.win, {
+      duration = 1500,
+      interval = 150,
+      highlights = { "StackPurple", "StackGreen" },
+    })
+  elseif game_state.winner == "Dealer" then
+    animate.flash_border(M.win, "error")
   end
 end
 
@@ -82,7 +43,9 @@ local function draw_player()
 end
 
 local function draw_com()
-  return table.insert(game_state.com_active), table.remove(game_state.deck)
+  local card = table.remove(game_state.deck)
+  table.insert(game_state.com_active, card)
+  return card
 end
 
 function M.fight()
@@ -99,9 +62,8 @@ local function reset_game_state()
     com_deck = {},
     com_discard = {},
     com_active = {},
-    buf = nil,
   }
-  display_game_state(game_state.buf)
+  display_game_state(game_state)
 end
 
 function M.restart()
@@ -125,32 +87,17 @@ end
 
 --- Setup the game
 function M.setup()
-  reset_game_state()
-  require("vimcino.games.init").setup_hl()
-
-  local buf = vim.api.nvim_create_buf(false, true)
+  local buf, win = display_war.create_window()
+  Log.debug({ buf, win })
   game_state.buf = buf
-  bet_handler.create(buf, 25, function(bufnr)
-    display_game_state(bufnr)
+  M.win = win
+
+  bet_handler.create(buf, 25, function()
+    display_game_state(game_state)
   end)
 
-  local width = 50
-  local height = 15
-  local ui = vim.api.nvim_list_uis()[1]
-  local row = math.floor((ui.height - height) / 2)
-  local col = math.floor((ui.width - width) / 2)
-
-  local _ = vim.api.nvim_open_win(buf, true, {
-    relative = "editor",
-    width = width,
-    height = height,
-    row = row,
-    col = col,
-    style = "minimal",
-    border = "rounded",
-  })
-
-  display_game_state(buf)
+  reset_game_state()
+  display_game_state(game_state)
   setup_keybindings()
 end
 
